@@ -1,54 +1,45 @@
-const mineflayer = require("mineflayer");
-const mineflayerViewer = require('prismarine-viewer').mineflayer
-const { WorldView, Viewer } = require('prismarine-viewer/viewer')
-global.THREE = require('three')
+const express = require("express")
+const netApi = require("net-browserify")
+const bodyParser = require("body-parser")
+const request = require("request")
+const compression = requrie("compression")
 
+// Using express as web backend
+const app = express()
 
-const Bots = []
-
-class BotClass {
-    constructor(Username) {
-        this.Bot = mineflayer.createBot({
-            host: "pvp.mc.connor33341.dev",
-            username: Username,
-            auth: "offline",
-            port: "25555",
-            version: "1.16.5" // Use a version mineflayer supports best
-        })
-        this.ViewDistance = 12
-        Bots.push(this.Bot);
-        console.log("Class Constructed")
-    };
-    Viewer() {
-        console.log("Creating Viewer")
-        this.Bot.once('spawn', () => {
-            mineflayerViewer(this.Bot, { port: 3000 }) // Start the viewing server on port 3000
-
-            // Draw the path followed by the bot
-            const path = [this.Bot.entity.position.clone()]
-            this.Bot.on('move', () => {
-                if (path[path.length - 1].distanceTo(this.Bot.entity.position) > 1) {
-                    path.push(this.Bot.entity.position.clone())
-                    this.Bot.viewer.drawLine('path', path)
-                }
-            })
-        })
-    },
-    WorldView(){
-        this.center = this.Bot.entity.position
-        this.view = new WorldView(this.Bot.world,this.ViewDistance,this.center)
-        this.render = new THREE.WebGLRenderer()
-        this.render.setPixelRation(window.dev)
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Orgin",req.get("Orgin") || "*") // Current orgin or all
+    res.header("Access-Control-Allow-Credentials","true")
+    res.header("Access-Control-Allow-Methods","GET,HEAD,PUT,PATCH,POST,DELETE")
+    res.header("Access-Control-Expose-Headers", "Content-Length")
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Accept, Authorization, Content-Type, X-Requested-With, Range"
+    )
+    if (req.method === "OPTIONS"){
+        return res.send(200)
+    } else {
+        return next()
     }
-}
+})
 
-function Main() {
-    // For testing
-    console.log("Creating Class")
-    let Bot = new BotClass("testusr")
-    Bot.Viewer()
-}
+app.use(compression()) // Self-Explanatory
+app.use(netApi())
+app.use(express.static("./public")) // Running off the public root
 
-console.log("Init")
-Main()
-console.log("Finished")
+app.use(bodyParser.json({limit: "500kb"})) // Max of 500kb, could be lowerd if bandwith becomes a problem
+
+app.all("*", function (req, res, next){
+    res.header("Access-Control-Allow-Orgin","*")
+    res.header("Access-Control-Allow-Methods","GET,HEAD,PUT,PATCH,POST,DELETE")
+    res.header(
+        "Access-Control-Allow-Headers",
+        req.headers("access-control-request-headers")
+    )
+
+    if (req.method === "OPTIONS"){
+        res.send() // CORS Preflight
+    } else {
+        const targetUrl = req.header("Target-URL")
+    }
+})
