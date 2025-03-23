@@ -2,7 +2,7 @@ const express = require("express")
 const netApi = require("net-browserify")
 const bodyParser = require("body-parser")
 const request = require("request")
-const compression = requrie("compression")
+const compression = require("compression")
 
 // Using express as web backend
 const app = express()
@@ -34,12 +34,41 @@ app.all("*", function (req, res, next){
     res.header("Access-Control-Allow-Methods","GET,HEAD,PUT,PATCH,POST,DELETE")
     res.header(
         "Access-Control-Allow-Headers",
-        req.headers("access-control-request-headers")
+        req.header("access-control-request-headers")
     )
 
     if (req.method === "OPTIONS"){
         res.send() // CORS Preflight
     } else {
         const targetUrl = req.header("Target-URL")
+        if (!targetUrl){
+            res.status(404).send({error: "404 not found"})
+            return;
+        }
+        const newHeaders = req.headers
+        newHeaders.host = targetUrl
+            .replace("https://","")
+            .replace("http://","")
+            .split("/")[0]
+        request(
+            {
+                url: targetUrl + req.url,
+                method: req.method,
+                json: req.body,
+                headers: req.headers
+            },
+            function (error, response, body){
+                if (error){
+                    console.error(error)
+                    console.error("StatusCode: "+response.statusCode)
+                }
+            }
+        ).pipe(res)
     }
+})
+
+// Start the server
+// Uhh prob 3030
+const server = app.listen(3030,function () {
+    console.log("Listening on port: "+server.address().port)
 })
