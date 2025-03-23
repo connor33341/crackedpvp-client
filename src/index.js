@@ -1,5 +1,8 @@
 const mineflayer = require("mineflayer");
 const mineflayerViewer = require('prismarine-viewer').mineflayer
+const { WorldView, Viewer } = require('prismarine-viewer/viewer')
+global.THREE = require('three')
+
 
 const Bots = []
 
@@ -12,6 +15,7 @@ class BotClass {
             port: "25555",
             version: "1.16.5" // Use a version mineflayer supports best
         })
+        this.ViewDistance = 12
         Bots.push(this.Bot);
         console.log("Class Constructed")
     };
@@ -29,6 +33,12 @@ class BotClass {
                 }
             })
         })
+    },
+    WorldView(){
+        this.center = this.Bot.entity.position
+        this.view = new WorldView(this.Bot.world,this.ViewDistance,this.center)
+        this.render = new THREE.WebGLRenderer()
+        this.render.setPixelRation(window.dev)
     }
 }
 
