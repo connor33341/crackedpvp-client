@@ -1,6 +1,3 @@
 # crackedpvp-client
 
----
-
-### Todo
-
+`bash run.sh`
